@@ -43,3 +43,5 @@ The first run will download the translation model (~140MB). Subsequent runs will
 ## License
 
 MIT License
+
+For more information about QVAC, visit: https://github.com/tetherto/qvac
