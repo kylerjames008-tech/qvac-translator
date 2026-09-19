@@ -1,6 +1,10 @@
 import os
 os.environ['QVAC_SDK_DIR'] = r'C:\Users\kavya\AppData\Roaming\npm\node_modules\@qvac\sdk'
 
+import sys
+import io
+sys.stdout.reconfigure(encoding='utf-8')
+
 from tetherto.qvac_sdk import Client, load_model, completion
 from tetherto.qvac_sdk.models import LLAMA_3_2_1B_INST_Q4_0
 
