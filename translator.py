@@ -53,6 +53,7 @@ class TranslatorApp:
         
         # State
         self.client = None
+        self.transport = None
         self.model_id = None
         self.loaded = False
         self.is_translating = False
@@ -234,8 +235,9 @@ class TranslatorApp:
                 self._set_status("Loading AI model...", "⏳", PROF_COLORS['text_muted'])
                 self.client = Client()
                 await self.client.__aenter__()
+                self.transport = self.client.transport
                 self.model_id = await load_model(
-                    self.client.transport, 
+                    self.transport, 
                     model_src=LLAMA_3_2_1B_INST_Q4_0
                 )
                 self.loaded = True
@@ -243,6 +245,7 @@ class TranslatorApp:
                 self.root.after(0, lambda: self.translate_btn.config(state=tk.NORMAL))
             except Exception as e:
                 self._set_status(f"Error loading model: {e}", "❌", PROF_COLORS['error'])
+                print(f"Model load error: {e}")
                 self.root.after(0, lambda: self.translate_btn.config(state=tk.NORMAL))
         
         asyncio.run(async_load())
@@ -256,6 +259,10 @@ class TranslatorApp:
             return
         
         if self.is_translating:
+            return
+        
+        if not self.loaded or not self.transport:
+            messagebox.showerror("Not Ready", "Model not loaded. Please wait for the model to load.")
             return
         
         self.is_translating = True
@@ -278,7 +285,7 @@ Japanese translation:"""
         async def async_translate():
             try:
                 result = completion(
-                    self.client.transport, 
+                    self.transport, 
                     model_id=self.model_id, 
                     history=[{"role": "user", "content": prompt}]
                 )
@@ -303,7 +310,7 @@ Japanese translation:"""
     def on_closing(self):
         """Handle window close."""
         if self.client:
-            self.client.__aexit__(None, None, None)
+            asyncio.run(self.client.__aexit__(None, None, None))
         self.root.destroy()
 
 
