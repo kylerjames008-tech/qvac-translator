@@ -283,9 +283,9 @@ Japanese translation:"""
                     history=[{"role": "user", "content": prompt}]
                 )
                 translation = await result.text()
-                self.root.after(0, lambda: self.show_output(translation))
-            except Exception as e:
-                self.root.after(0, lambda: self._set_status(f"Translation error: {e}", "❌", PROF_COLORS['error']))
+                self.root.after(0, lambda t: self.show_output(translation))
+            except Exception:
+                self.root.after(0, lambda: self._set_status("Translation error occurred", "❌", PROF_COLORS['error']))
             finally:
                 self.is_translating = False
                 self.root.after(0, lambda: self.translate_btn.config(state=tk.NORMAL))
