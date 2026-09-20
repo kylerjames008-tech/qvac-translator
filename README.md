@@ -1,12 +1,16 @@
-# QVAC English to Japanese Translator
+# Translator - QVAC
 
-An offline, on-device English to Japanese translation app using Tether's QVAC SDK.
+A beautiful, offline English → Japanese translator running entirely on-device with Tether's QVAC SDK.
+
+![Translator](https://img.shields.io/badge/Powered%20by-QVAC-blue)
+![License](https://img.shields.io/badge/License-MIT-green)
 
 ## Features
 
-- **On-device inference**: No API keys, no cloud usage bills. Your data stays local.
-- **Offline capable**: Once downloaded, works without internet.
-- **Fast & Private**: Runs directly on your machine.
+- 🎨 **Beautiful GUI** - Modern dark interface with clean design
+- 🔒 **On-device inference** - No API keys, no cloud usage bills. Your data stays local.
+- 🌐 **Offline capable** - Once downloaded, works without internet.
+- ⚡ **Fast & Private** - Runs directly on your machine.
 
 ## Requirements
 
@@ -27,18 +31,16 @@ An offline, on-device English to Japanese translation app using Tether's QVAC SD
 
 ## Usage
 
-Run the application:
-```bash
-python app.py
-```
+Double-click `app.py` (or run `python app.py`) to launch the translator.
 
-Enter English text when prompted, and it will be translated to Japanese.
+![Screenshot](https://via.placeholder.com/600x400/1e1e2e/89b4fa?text=Translator+GUI+Preview)
 
 ## Tech Stack
 
-- SDK: [tetherto-qvac-sdk](https://pypi.org/project/tetherto-qvac-sdk/) (v0.19.1)
-- Model: Llama 3.2 1B Instruct (for translation via prompt)
-- Task: Translation (on-device completion)
+- **SDK**: [tetherto-qvac-sdk](https://pypi.org/project/tetherto-qvac-sdk/) (v0.19.1)
+- **Model**: Llama 3.2 1B Instruct (for translation via prompt)
+- **Task**: Translation (on-device completion)
+- **GUI**: Tkinter (built-in Python)
 
 ## How It Works
 
@@ -47,3 +49,7 @@ This app uses the QVAC SDK to run an LLM locally on your machine. Instead of cal
 ## Credits
 
 Built with [QVAC SDK](https://github.com/tetherto/qvac) by [@tether](https://x.com/tether).
+
+## License
+
+MIT License - see [LICENSE](LICENSE) for details.
