@@ -43,3 +43,7 @@ Enter English text when prompted, and it will be translated to Japanese.
 ## How It Works
 
 This app uses the QVAC SDK to run an LLM locally on your machine. Instead of calling a cloud API, the model runs entirely on-device, making translation private and offline-capable.
+
+## Credits
+
+Built with [QVAC SDK](https://github.com/tetherto/qvac) by [@tether](https://x.com/tether).
