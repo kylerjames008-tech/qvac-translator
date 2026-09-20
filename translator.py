@@ -63,7 +63,6 @@ class TranslatorApp:
         header = tk.Frame(self.root, bg=PROF_COLORS['bg'], pady=20, padx=30)
         header.pack(fill=tk.X)
         
-        # Title
         title = tk.Label(
             header,
             text="Translator",
@@ -73,7 +72,6 @@ class TranslatorApp:
         )
         title.pack()
         
-        # Subtitle
         subtitle = tk.Label(
             header,
             text="Powered by QVAC | Local AI Translation",
@@ -88,7 +86,6 @@ class TranslatorApp:
         main = tk.Frame(self.root, bg=PROF_COLORS['bg'], padx=30, pady=20)
         main.pack(fill=tk.BOTH, expand=True)
         
-        # Create canvas for scrollable area
         canvas = tk.Canvas(main, bg=PROF_COLORS['bg'], highlightthickness=0)
         scroll_y = ttk.Scrollbar(main, orient="vertical", command=canvas.yview)
         scrollable = ttk.Frame(canvas)
@@ -104,11 +101,9 @@ class TranslatorApp:
         canvas.pack(side="left", fill="both", expand=True)
         scroll_y.pack(side="right", fill="y")
         
-        # Translation panel
         panel = ttk.LabelFrame(scrollable, padding=15)
         panel.pack(fill=tk.X, padx=10)
         
-        # Input section
         input_frame = ttk.Frame(panel)
         input_frame.pack(fill=tk.X, pady=(0, 15))
         
@@ -135,7 +130,6 @@ class TranslatorApp:
         )
         self.input_text.pack(fill=tk.X, pady=(0, 8))
         
-        # Action buttons
         btn_frame = ttk.Frame(panel)
         btn_frame.pack(pady=5)
         
@@ -155,7 +149,6 @@ class TranslatorApp:
         )
         self.translate_btn.pack()
         
-        # Output section
         output_frame = ttk.Frame(panel)
         output_frame.pack(fill=tk.X, pady=(20, 0))
         
@@ -182,7 +175,6 @@ class TranslatorApp:
         )
         self.output_text.pack(fill=tk.X)
         
-        # Status indicator
         self.status_frame = tk.Frame(panel, bg=PROF_COLORS['bg'])
         self.status_frame.pack(fill=tk.X, pady=(15, 0))
         
@@ -248,7 +240,9 @@ class TranslatorApp:
                 print(f"Model load error: {e}")
                 self.root.after(0, lambda: self.translate_btn.config(state=tk.NORMAL))
         
-        asyncio.run(async_load())
+        self.loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self.loop)
+        self.loop.create_task(async_load())
     
     def translate(self):
         """Perform translation."""
@@ -298,7 +292,7 @@ Japanese translation:"""
                 self.is_translating = False
                 self.root.after(0, lambda: self.translate_btn.config(state=tk.NORMAL))
         
-        asyncio.run(async_translate())
+        self.loop.create_task(async_translate())
     
     def show_output(self, text):
         """Display translation output."""
@@ -309,8 +303,6 @@ Japanese translation:"""
     
     def on_closing(self):
         """Handle window close."""
-        if self.client:
-            asyncio.run(self.client.__aexit__(None, None, None))
         self.root.destroy()
 
 
@@ -318,13 +310,10 @@ def main():
     root = tk.Tk()
     app = TranslatorApp(root)
     
-    # Setup cleanup
     root.protocol("WM_DELETE_WINDOW", app.on_closing)
     
-    # Load model after GUI is ready
     root.after(500, app.load_model)
     
-    # Start the app
     root.mainloop()
 
 
