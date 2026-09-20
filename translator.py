@@ -1,11 +1,9 @@
-import asyncio
 import sys
 import os
 from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox
 
-# Try to find QVAC SDK automatically
 SDK_PATHS = [
     Path.home() / "AppData" / "Roaming" / "npm" / "node_modules" / "@qvac" / "sdk",
     Path(r"C:\Users\kavya\AppData\Roaming\npm\node_modules\@qvac\sdk"),
@@ -16,304 +14,160 @@ for sdk_path in SDK_PATHS:
         os.environ["QVAC_SDK_DIR"] = str(sdk_path)
         break
 
-from tetherto.qvac_sdk import Client, load_model, completion
-from tetherto.qvac_sdk.models import LLAMA_3_2_1B_INST_Q4_0
+try:
+    from tetherto.qvac_sdk import Client, load_model, completion
+    from tetherto.qvac_sdk.models import LLAMA_3_2_1B_INST_Q4_0
+except ImportError as e:
+    messagebox.showerror("Error", f"Cannot import QVAC SDK: {e}\n\nPlease install: npm install -g @qvac/sdk@0.19.1")
+    sys.exit(1)
 
-# Professional color scheme
 PROF_COLORS = {
     'bg': '#F5F7FA',
     'fg': '#2D3748',
     'accent': '#4C51BF',
-    'accent_hover': '#434190',
     'input_bg': '#EDF2F7',
-    'input_fg': '#1A202C',
     'output_bg': '#EBF8FF',
-    'output_fg': '#2B6CB0',
+    'text_muted': '#718096',
     'success': '#48BB78',
-    'warning': '#ED8936',
-    'error': '#F56565',
-    'border': '#E2E8F0',
-    'text_muted': '#718096'
+    'error': '#F56565'
 }
 
 class TranslatorApp:
     def __init__(self, root):
         self.root = root
-        
-        # Main window
         root.title("Translator - AI Translation Tool")
         root.geometry("800x600")
         root.configure(bg=PROF_COLORS['bg'])
-        root.resizable(True, True)
         
-        # Apply professional theme
         self._create_header()
         self._create_main_content()
         self._create_footer()
         
-        # State
         self.client = None
-        self.transport = None
         self.model_id = None
         self.loaded = False
-        self.is_translating = False
         
     def _create_header(self):
-        """Create professional header."""
         header = tk.Frame(self.root, bg=PROF_COLORS['bg'], pady=20, padx=30)
         header.pack(fill=tk.X)
         
-        title = tk.Label(
-            header,
-            text="Translator",
-            font=("Segoe UI", 28, "bold"),
-            fg=PROF_COLORS['fg'],
-            bg=PROF_COLORS['bg']
-        )
-        title.pack()
-        
-        subtitle = tk.Label(
-            header,
-            text="Powered by QVAC | Local AI Translation",
-            font=("Segoe UI", 10),
-            fg=PROF_COLORS['text_muted'],
-            bg=PROF_COLORS['bg']
-        )
-        subtitle.pack(pady=(5, 0))
+        tk.Label(header, text="Translator", font=("Segoe UI", 28, "bold"), 
+                 fg=PROF_COLORS['fg'], bg=PROF_COLORS['bg']).pack()
+        tk.Label(header, text="Powered by QVAC | Local AI Translation", 
+                 font=("Segoe UI", 10), fg=PROF_COLORS['text_muted'], 
+                 bg=PROF_COLORS['bg']).pack(pady=(5, 0))
     
     def _create_main_content(self):
-        """Create main content area with input/output panels."""
         main = tk.Frame(self.root, bg=PROF_COLORS['bg'], padx=30, pady=20)
         main.pack(fill=tk.BOTH, expand=True)
         
-        canvas = tk.Canvas(main, bg=PROF_COLORS['bg'], highlightthickness=0)
-        scroll_y = ttk.Scrollbar(main, orient="vertical", command=canvas.yview)
-        scrollable = ttk.Frame(canvas)
-        
-        scrollable.bind(
-            "<Configure>",
-            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-        )
-        
-        canvas.create_window((0, 0), window=scrollable, anchor="nw")
-        canvas.configure(yscrollcommand=scroll_y.set)
-        
-        canvas.pack(side="left", fill="both", expand=True)
-        scroll_y.pack(side="right", fill="y")
-        
-        panel = ttk.LabelFrame(scrollable, padding=15)
+        panel = ttk.LabelFrame(main, padding=15)
         panel.pack(fill=tk.X, padx=10)
         
-        input_frame = ttk.Frame(panel)
-        input_frame.pack(fill=tk.X, pady=(0, 15))
+        input_label = tk.Label(panel, text="English Input", 
+                               font=("Segoe UI", 11, "bold"), fg=PROF_COLORS['fg'])
+        input_label.pack(anchor="w", pady=(0, 8))
         
-        ttk.Label(
-            input_frame,
-            text="English Input",
-            font=("Segoe UI", 11, "bold"),
-            foreground=PROF_COLORS['fg']
-        ).pack(anchor="w", pady=(0, 8))
-        
-        self.input_text = scrolledtext.ScrolledText(
-            input_frame,
-            height=5,
-            font=("Segoe UI", 11),
-            bg=PROF_COLORS['input_bg'],
-            fg=PROF_COLORS['input_fg'],
-            insertbackground=PROF_COLORS['input_fg'],
-            relief=tk.FLAT,
-            highlightthickness=2,
-            highlightbackground=PROF_COLORS['border'],
-            highlightcolor=PROF_COLORS['accent'],
-            padx=12,
-            pady=12
-        )
+        self.input_text = scrolledtext.ScrolledText(panel, height=5,
+            font=("Segoe UI", 11), bg=PROF_COLORS['input_bg'], fg=PROF_COLORS['fg'],
+            highlightthickness=2, highlightbackground=PROF_COLORS['text_muted'], padx=12, pady=12)
         self.input_text.pack(fill=tk.X, pady=(0, 8))
         
-        btn_frame = ttk.Frame(panel)
-        btn_frame.pack(pady=5)
-        
-        self.translate_btn = tk.Button(
-            btn_frame,
-            text="Translate",
-            font=("Segoe UI", 10, "bold"),
-            bg=PROF_COLORS['accent'],
-            fg="#FFFFFF",
-            activebackground=PROF_COLORS['accent_hover'],
-            activeforeground="#FFFFFF",
-            relief=tk.FLAT,
-            padx=30,
-            pady=10,
-            cursor="hand2",
-            command=self.translate
-        )
+        self.translate_btn = tk.Button(panel, text="Translate", font=("Segoe UI", 10, "bold"),
+            bg=PROF_COLORS['accent'], fg="#FFFFFF", padx=30, pady=10, cursor="hand2", command=self.translate)
         self.translate_btn.pack()
         
-        output_frame = ttk.Frame(panel)
-        output_frame.pack(fill=tk.X, pady=(20, 0))
+        output_label = tk.Label(panel, text="Japanese Output", 
+                                font=("Segoe UI", 11, "bold"), fg=PROF_COLORS['fg'])
+        output_label.pack(anchor="w", pady=(20, 8))
         
-        ttk.Label(
-            output_frame,
-            text="Japanese Output",
-            font=("Segoe UI", 11, "bold"),
-            foreground=PROF_COLORS['fg']
-        ).pack(anchor="w", pady=(0, 8))
-        
-        self.output_text = scrolledtext.ScrolledText(
-            output_frame,
-            height=5,
-            font=("Segoe UI", 11),
-            bg=PROF_COLORS['output_bg'],
-            fg=PROF_COLORS['output_fg'],
-            state=tk.DISABLED,
-            relief=tk.FLAT,
-            highlightthickness=2,
-            highlightbackground=PROF_COLORS['border'],
-            highlightcolor=PROF_COLORS['accent'],
-            padx=12,
-            pady=12
-        )
+        self.output_text = scrolledtext.ScrolledText(panel, height=5,
+            font=("Segoe UI", 11), bg=PROF_COLORS['output_bg'], fg=PROF_COLORS['fg'],
+            state=tk.DISABLED, highlightthickness=2, highlightbackground=PROF_COLORS['text_muted'], padx=12, pady=12)
         self.output_text.pack(fill=tk.X)
         
-        self.status_frame = tk.Frame(panel, bg=PROF_COLORS['bg'])
-        self.status_frame.pack(fill=tk.X, pady=(15, 0))
-        
-        self.status_icon = tk.Label(
-            self.status_frame,
-            text="⏱️",
-            font=("Segoe UI", 12),
-            bg=PROF_COLORS['bg']
-        )
-        self.status_icon.pack(side="left")
-        
-        self.status_text = tk.Label(
-            self.status_frame,
-            text="Ready - Type your text above",
-            font=("Segoe UI", 10),
-            fg=PROF_COLORS['text_muted'],
-            bg=PROF_COLORS['bg']
-        )
-        self.status_text.pack(side="left", padx=(10, 0))
+        self.status = tk.Label(panel, text="Loading model...", font=("Segoe UI", 10), 
+                               fg=PROF_COLORS['text_muted'], bg=PROF_COLORS['bg'])
+        self.status.pack(pady=(15, 0))
     
     def _create_footer(self):
-        """Create professional footer."""
         footer = ttk.Frame(self.root, padding=15)
         footer.pack(fill=tk.X, side=tk.BOTTOM)
-        
         ttk.Separator(footer, orient="horizontal").pack(fill="x")
-        
-        credits = tk.Label(
-            footer,
-            text="Built with QVAC SDK | On-device AI | No Cloud Calls",
-            font=("Segoe UI", 9),
-            fg=PROF_COLORS['text_muted'],
-            bg=PROF_COLORS['bg']
-        )
-        credits.pack(pady=(8, 0))
-    
-    def _set_status(self, text, icon, color):
-        """Update status indicator."""
-        self.status_icon.config(text=icon)
-        self.status_text.config(text=text, fg=color)
+        tk.Label(footer, text="Built with QVAC SDK | On-device AI | No Cloud Calls",
+                 font=("Segoe UI", 9), fg=PROF_COLORS['text_muted'], bg=PROF_COLORS['bg']).pack(pady=(8, 0))
     
     def load_model(self):
-        """Load the QVAC model."""
-        self._set_status("Loading AI model...", "⏳", PROF_COLORS['text_muted'])
+        self.status.config(text="Loading AI model... Please wait...")
         self.translate_btn.config(state=tk.DISABLED)
         self.root.update()
         
-        async def async_load():
-            try:
-                self._set_status("Loading AI model...", "⏳", PROF_COLORS['text_muted'])
-                self.client = Client()
-                await self.client.__aenter__()
-                self.transport = self.client.transport
-                self.model_id = await load_model(
-                    self.transport, 
-                    model_src=LLAMA_3_2_1B_INST_Q4_0
-                )
-                self.loaded = True
-                self._set_status("AI model loaded successfully! ✅", "✅", PROF_COLORS['success'])
-                self.root.after(0, lambda: self.translate_btn.config(state=tk.NORMAL))
-            except Exception as e:
-                self._set_status(f"Error loading model: {e}", "❌", PROF_COLORS['error'])
-                print(f"Model load error: {e}")
-                self.root.after(0, lambda: self.translate_btn.config(state=tk.NORMAL))
-        
-        self.loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(self.loop)
-        self.loop.create_task(async_load())
+        try:
+            self.client = Client()
+            import asyncio
+            self.model_id = asyncio.run(load_model(
+                self.client.transport, 
+                model_src=LLAMA_3_2_1B_INST_Q4_0
+            ))
+            self.loaded = True
+            self.status.config(text="Model loaded! Ready to translate.", fg=PROF_COLORS['success'])
+            self.translate_btn.config(state=tk.NORMAL)
+        except Exception as e:
+            self.status.config(text=f"Error: {e}", fg=PROF_COLORS['error'])
+            messagebox.showerror("Model Load Error", str(e))
     
     def translate(self):
-        """Perform translation."""
         english = self.input_text.get("1.0", tk.END).strip()
         
         if not english:
             messagebox.showwarning("Input Required", "Please enter some text to translate.")
             return
         
-        if self.is_translating:
+        if not self.loaded:
+            messagebox.showerror("Not Ready", "Model not loaded. Please wait.")
             return
         
-        if not self.loaded or not self.transport:
-            messagebox.showerror("Not Ready", "Model not loaded. Please wait for the model to load.")
-            return
-        
-        self.is_translating = True
-        self._set_status("Translating...", "⏳", PROF_COLORS['text_muted'])
         self.translate_btn.config(state=tk.DISABLED)
+        self.status.config(text="Translating...", fg=PROF_COLORS['text_muted'])
         
         self.output_text.config(state=tk.NORMAL)
         self.output_text.delete("1.0", tk.END)
         self.output_text.config(state=tk.DISABLED)
         
-        prompt = f"""Translate the following English text to Japanese naturally and accurately.
+        prompt = f"""Translate to Japanese. ONLY output the translation.
 
-Output ONLY the Japanese translation. Do not add any explanations, romanization, or extra text.
+Examples:
+- hello → こんにちは
+- thank you → ありがとう
 
-English text:
-{english}
-
-Japanese translation:"""
+Text: {english}
+Translation:"""
         
-        async def async_translate():
-            try:
-                result = completion(
-                    self.transport, 
-                    model_id=self.model_id, 
-                    history=[{"role": "user", "content": prompt}]
-                )
-                translation = await result.text()
-                self.root.after(0, lambda t=translation: self.show_output(t))
-            except Exception as e:
-                print(f"Translation error: {e}")
-                self.root.after(0, lambda e=e: self._set_status(f"Error: {str(e)[:50]}", "❌", PROF_COLORS['error']))
-            finally:
-                self.is_translating = False
-                self.root.after(0, lambda: self.translate_btn.config(state=tk.NORMAL))
+        try:
+            import asyncio
+            result = completion(
+                self.client.transport, 
+                model_id=self.model_id, 
+                history=[{"role": "user", "content": prompt}]
+            )
+            translation = asyncio.run(result.text())
+            self.output_text.config(state=tk.NORMAL)
+            self.output_text.insert(tk.END, translation)
+            self.output_text.config(state=tk.DISABLED)
+            self.status.config(text="Translation complete!", fg=PROF_COLORS['success'])
+        except Exception as e:
+            self.status.config(text=f"Error: {e}", fg=PROF_COLORS['error'])
+            messagebox.showerror("Translation Error", str(e))
         
-        self.loop.create_task(async_translate())
-    
-    def show_output(self, text):
-        """Display translation output."""
-        self.output_text.config(state=tk.NORMAL)
-        self.output_text.insert(tk.END, text)
-        self.output_text.config(state=tk.DISABLED)
-        self._set_status("Translation complete! ✅", "✅", PROF_COLORS['success'])
-    
-    def on_closing(self):
-        """Handle window close."""
-        self.root.destroy()
+        self.translate_btn.config(state=tk.NORMAL)
 
 
 def main():
     root = tk.Tk()
     app = TranslatorApp(root)
-    
-    root.protocol("WM_DELETE_WINDOW", app.on_closing)
+    root.protocol("WM_DELETE_WINDOW", root.destroy)
     
     root.after(500, app.load_model)
-    
     root.mainloop()
 
 
