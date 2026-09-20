@@ -1,5 +1,19 @@
 import asyncio
 import sys
+import os
+from pathlib import Path
+
+# Try to find QVAC SDK automatically
+SDK_PATHS = [
+    Path.home() / "AppData" / "Roaming" / "npm" / "node_modules" / "@qvac" / "sdk",
+    Path(r"C:\Users\kavya\AppData\Roaming\npm\node_modules\@qvac\sdk"),
+]
+
+for sdk_path in SDK_PATHS:
+    if sdk_path.exists():
+        os.environ["QVAC_SDK_DIR"] = str(sdk_path)
+        break
+
 from tetherto.qvac_sdk import Client, load_model, completion
 from tetherto.qvac_sdk.models import LLAMA_3_2_1B_INST_Q4_0
 
@@ -50,6 +64,7 @@ Japanese:"""
                     break
     except Exception as e:
         print(f"Error: {e}")
+        print("\nTo fix this, run the app.bat file instead.")
     finally:
         print("\nPress Enter to exit...")
         input()
