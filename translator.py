@@ -283,7 +283,7 @@ Japanese translation:"""
                     history=[{"role": "user", "content": prompt}]
                 )
                 translation = await result.text()
-                self.root.after(0, lambda t: self.show_output(translation))
+                self.root.after(0, lambda t=translation: self.show_output(t))
             except Exception:
                 self.root.after(0, lambda: self._set_status("Translation error occurred", "❌", PROF_COLORS['error']))
             finally:
