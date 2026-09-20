@@ -284,8 +284,9 @@ Japanese translation:"""
                 )
                 translation = await result.text()
                 self.root.after(0, lambda t=translation: self.show_output(t))
-            except Exception:
-                self.root.after(0, lambda: self._set_status("Translation error occurred", "❌", PROF_COLORS['error']))
+            except Exception as e:
+                print(f"Translation error: {e}")
+                self.root.after(0, lambda e=e: self._set_status(f"Error: {str(e)[:50]}", "❌", PROF_COLORS['error']))
             finally:
                 self.is_translating = False
                 self.root.after(0, lambda: self.translate_btn.config(state=tk.NORMAL))
