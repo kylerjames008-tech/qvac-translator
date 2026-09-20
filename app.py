@@ -22,7 +22,7 @@ from tetherto.qvac_sdk.models import LLAMA_3_2_1B_INST_Q4_0
 class TranslatorApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Translator - QVAC")
+        self.root.title("translator")
         self.root.geometry("700x500")
         self.root.minsize(600, 400)
         
@@ -35,7 +35,7 @@ class TranslatorApp:
         
         title_label = tk.Label(
             title_frame, 
-            text="🔤 Translator", 
+            text="🔤 translator", 
             font=("Segoe UI", 20, "bold"),
             fg="#89b4fa", 
             bg="#1e1e2e"
@@ -193,9 +193,9 @@ Translation:"""
                     history=[{"role": "user", "content": prompt}]
                 )
                 translation = await result.text()
-                self.root.after(0, lambda: self.show_output(translation))
+                self.root.after(0, lambda t: self.show_output(translation))
             except Exception as e:
-                self.root.after(0, lambda: self.status.config(text=f"Error: {e}"))
+                self.root.after(0, lambda t: self.status.config(text=f"Error: {e}"))
             finally:
                 self.root.after(0, lambda: self.translate_btn.config(state=tk.NORMAL))
         
