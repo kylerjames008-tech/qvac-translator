@@ -182,7 +182,7 @@ class TranslatorApp:
         self.output_text.pack(fill=tk.X)
         
         # Status indicator
-        self.status_frame = ttk.Frame(panel)
+        self.status_frame = tk.Frame(panel, bg=PROF_COLORS['bg'])
         self.status_frame.pack(fill=tk.X, pady=(15, 0))
         
         self.status_icon = tk.Label(
@@ -222,7 +222,6 @@ class TranslatorApp:
         """Update status indicator."""
         self.status_icon.config(text=icon)
         self.status_text.config(text=text, fg=color)
-        self.status_frame.configure(bg=PROF_COLORS['bg'])
     
     def load_model(self):
         """Load the QVAC model."""
