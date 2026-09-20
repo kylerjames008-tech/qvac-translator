@@ -1,47 +1,45 @@
-# Eng to Hindi Translator
+# QVAC English to Japanese Translator
 
-A local AI translator that uses Tether's QVAC SDK to translate English to Hindi directly on your device. The model runs locally, so there's no API key, no usage bills, and your data never leaves your machine.
+An offline, on-device English to Japanese translation app using Tether's QVAC SDK.
 
 ## Features
 
-- Translate English text to Hindi
-- 100% offline - no internet required after initial model download
-- Privacy-focused - your text stays on your device
+- **On-device inference**: No API keys, no cloud usage bills. Your data stays local.
+- **Offline capable**: Once downloaded, works without internet.
+- **Fast & Private**: Runs directly on your machine.
 
 ## Requirements
 
 - Python 3.8+
-- Node.js and npm (used by the SDK for the inference worker)
+- Node.js/npm (for QVAC SDK worker)
 
 ## Installation
 
-1. Clone the repository:
-```bash
-git clone https://github.com/YOUR_USERNAME/qvac-hindi-translator.git
-cd qvac-hindi-translator
-```
+1. Clone or download this repository.
+2. Install Python dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Install the QVAC SDK worker (requires Node.js/npm):
+   ```bash
+   npm install -g @qvac/sdk@0.19.1
+   ```
 
-2. Install the QVAC SDK:
-```bash
-pip install tetherto-qvac-sdk
-```
+## Usage
 
-3. Install Node.js and npm if you don't have them.
-
-## Running
-
+Run the application:
 ```bash
 python app.py
 ```
 
-The first run will download the translation model (~140MB). Subsequent runs will use the cached model.
+Enter English text when prompted, and it will be translated to Japanese.
 
-## SDK Version
+## Tech Stack
 
-- tetherto-qvac-sdk: 0.19.1
+- SDK: [tetherto-qvac-sdk](https://pypi.org/project/tetherto-qvac-sdk/) (v0.19.1)
+- Model: Llama 3.2 1B Instruct (for translation via prompt)
+- Task: Translation (on-device completion)
 
-## License
+## How It Works
 
-MIT License
-
-For more information about QVAC, visit: https://github.com/tetherto/qvac
+This app uses the QVAC SDK to run an LLM locally on your machine. Instead of calling a cloud API, the model runs entirely on-device, making translation private and offline-capable.
