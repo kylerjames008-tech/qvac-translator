@@ -29,12 +29,9 @@ async def main():
                 prompt = f"Translate to Japanese. Be accurate and natural. Output ONLY the Japanese text, no romanization or explanations.\n\nEnglish: {user_input}\nJapanese: "
                 result = completion(t, model_id=model_id, history=[{"role": "user", "content": prompt}])
                 
-                translation = ""
-                async for chunk in result.events:
-                    print(chunk.text, end="", flush=True)
-                    translation += chunk.text
-                
-                print()  # newline after translation
+                # Get full translation instead of streaming
+                translation = await result.text()
+                print(translation)
                 
             except KeyboardInterrupt:
                 print("\nGoodbye!")
