@@ -26,12 +26,22 @@ async def main():
                 
                 print("[Japanese] ", end="", flush=True)
                 
-                prompt = f"Translate to Japanese. Be accurate and natural. Output ONLY the Japanese text, no romanization or explanations.\n\nEnglish: {user_input}\nJapanese: "
+                # Stricter prompt with few-shot examples
+                prompt = f"""Translate English to Japanese. ONLY output the translation.
+
+Examples:
+- hello → こんにちは
+- thank you → ありがとう
+- how are you → お元気ですか
+
+Now translate:
+{user_input}
+Japanese:"""
                 result = completion(t, model_id=model_id, history=[{"role": "user", "content": prompt}])
                 
-                # Get full translation instead of streaming
                 translation = await result.text()
-                print(translation)
+                # Clean up the output - remove any repetition
+                print(translation.strip())
                 
             except KeyboardInterrupt:
                 print("\nGoodbye!")
